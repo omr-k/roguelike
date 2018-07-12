@@ -9,6 +9,7 @@ glass = Image.load('resource/image/glass.png')
 wall = Image.load('resource/image/wall.png')
 stair = Image.load('resource/image/stair.png')
 mapdata = []
+mapping = []
 
 charImage = [Image.load('resource/image/char_front.png'),
 		Image.load('resource/image/char_right.png'),
@@ -69,16 +70,21 @@ Window.loop do
 				x += 1
 			end
 
-			if items[0].drop && (items[0].x - mine.x).abs <= 2 && (items[0].y - mine.y).abs <= 2
-				Window.draw(274+(items[0].x - mine.x)*32,274+(items[0].y - mine.y)*32,items[0].img)
-			end
-
-			enemys.each do |ene|
-				if (ene.x - mine.x).abs <= 2 && (ene.y - mine.y).abs <= 2
-					Window.draw(274+(ene.x - mine.x)*32,274+(ene.y - mine.y)*32,eneImage[ene.img][ene.dir])
+			items.each do |it|
+				if it.drop && (it.x - mine.x).abs <= 2 && (it.y - mine.y).abs <= 2
+					Window.draw(274+(it.x - mine.x)*32,274+(it.y - mine.y)*32,it.img)
 				end
 			end
 
+			mapping = Marshal.load(Marshal.dump(mapdata))
+			enemys.each do |en|
+				if (en.x - mine.x).abs <= 2 && (en.y - mine.y).abs <= 2
+					Window.draw(274+(en.x - mine.x)*32,274+(en.y - mine.y)*32,eneImage[en.img][en.dir])
+					mapping[en.y][en.x] = 4
+				end
+			end
+
+			mapping[mine.y][mine.x] = 3
 			Window.draw(274,274,charImage[mine.dir])
 
 			if Input.key_push?(K_SPACE)
@@ -98,12 +104,14 @@ Window.loop do
 				end
 			end
 
-			if items[0].drop
-				Window.draw(155+items[0].x*32,5+items[0].y*32,items[0].img)
+			items.each do |it|
+				if it.drop
+					Window.draw(155+it.x*32,5+it.y*32,it.img)
+				end
 			end
 
-			enemys.each do |ene|
-				Window.draw(155+ene.x*32,5+ene.y*32,eneImage[ene.img][ene.dir])
+			enemys.each do |en|
+				Window.draw(155+en.x*32,5+en.y*32,eneImage[en.img][en.dir])
 			end
 
 			Window.draw(155+mine.x*32,5+mine.y*32,charImage[mine.dir])
@@ -115,41 +123,46 @@ Window.loop do
 
 		if Input.key_push?(K_UP)
 			mine.dir = 2
-			if mapdata[mine.y-1][mine.x] != 0 && !Input.key_down?(K_LSHIFT)
-				mine.y -= 1
-				mine.move(enemys,mapdata)
-			end
+			mine.move(enemys,mapping)
 		elsif Input.key_push?(K_RIGHT)
 			mine.dir = 1
-			if mapdata[mine.y][mine.x+1] != 0 && !Input.key_down?(K_LSHIFT)
-				mine.x += 1
-				mine.move(enemys,mapdata)
-			end
+			mine.move(enemys,mapping)
 		elsif Input.key_push?(K_DOWN)
 			mine.dir = 0
-			if mapdata[mine.y+1][mine.x] != 0 && !Input.key_down?(K_LSHIFT)
-				mine.y += 1
-				mine.move(enemys,mapdata)
-			end
+			mine.move(enemys,mapping)
 		elsif Input.key_push?(K_LEFT)
 			mine.dir = 3
-			if mapdata[mine.y][mine.x-1] != 0 && !Input.key_down?(K_LSHIFT)
-				mine.x -= 1
-				mine.move(enemys,mapdata)
-			end
+			mine.move(enemys,mapping)
 		end
 
-		if mine.x == items[0].x && mine.y == items[0].y && Input.key_push?(K_Z) && items[0].drop
-			mine.stamina += 50
-			if mine.stamina > mine.maxstamina
-				mine.stamina = mine.maxstamina
+		if Input.key_push?(K_Z)
+			if mine.x == items[0].x && mine.y == items[0].y && items[0].drop
+				mine.stamina += 50
+				if mine.stamina > mine.maxstamina
+					mine.stamina = mine.maxstamina
+				end
+				items[0].drop = false
+			elsif mapdata[mine.y][mine.x] == 2
+				mine.popCount = 0
+				mapflg = 0
+			else
+				attack = mine.attack(enemys,mapping)
+				if attack[0] == nil
+					puts "素振りをした"
+				elsif attack[0] == 0
+					puts "#{enemys[attack[1]].name}にダメージを与えられなかった"
+				else
+					puts "#{enemys[attack[1]].name}に#{attack[0]}ダメージ与えた"
+					if enemys[attack[1]].hp <= 0
+						puts "#{enemys[attack[1]].name}は倒れた"
+						enemys.delete_at(attack[1])
+					end
+				end
+				mine.countUp
+				enemys.each do |en|
+					en.move(mapping)
+				end
 			end
-			items[0].drop = false
-		end
-
-		if Input.key_push?(K_Z) && mapdata[mine.y][mine.x] == 2
-			mine.popCount = 0
-			mapflg = 0
 		end
 	end
 
