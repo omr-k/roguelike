@@ -16,6 +16,20 @@ def set(map, ban)
 	end
 end
 
+def message(log,s)
+	log << s
+
+	if log.size > 5
+		log.shift
+	end
+
+	str = ""
+	log.size.times do |n|
+		str += log[n] + "\n"
+	end
+	return str
+end
+
 class Char
 	attr_reader :maxhp, :maxstamina, :str, :vit
 	attr_accessor :hp, :stamina, :dir, :x, :y, :count, :popCount
@@ -52,7 +66,12 @@ class Char
 
 	def pop(enemys,map)
 		if enemys.size < map.size-5 && enemys.size < 9
-			enemys << Enemy.new("Silver Ball", 20, 5, 4, 0)
+			case rand(0..1)
+			when 0
+				enemys << Enemy.new("Silver Ball", 20, 5, 4, 0)
+			when 1
+				enemys << Enemy.new("Blue Slime", 20, 4, 6, 1)
+			end
 			enemys[-1].x,enemys[-1].y = set(map,self)
 		end
 		self.popCount = 0
@@ -165,48 +184,109 @@ class Enemy
 
 	def move(map)
 		map[self.y][self.x] = 1
-		flg = 0
-		while flg < 4
-		    if flg == 0
-		        dir = []
-		    end
-		    while dir.size < flg + 1
-		        dir << rand(1..4)
-		        dir.uniq!
-		    end
-		    
-		    case dir[-1]
-		    when 1
-		        if map[self.y][self.x+1] == 1 || map[self.y][self.x+1] == 2
-		        	self.x += 1
-		        	break
-		        else
-		            flg += 1
-		        end
-		    when 2
-		        if map[self.y+1][self.x] == 1 || map[self.y+1][self.x] == 2
-		        	self.y += 1
-		        	break
-		        else
-		            flg += 1
-		        end
-		    when 3
-		        if map[self.y][self.x-1] == 1 || map[self.y][self.x-1] == 2
-		            self.x -= 1
-		            break
-		        else
-		            flg += 1
-		        end
-		    when 4
-		        if map[self.y-1][self.x] == 1 || map[self.y-1][self.x] == 2
-		            self.y -= 1
-		            break
-		        else
-		            flg += 1
-		        end
-		    end
+		flg = true
+		if map.transpose[self.x].include?(3)
+			player = map.transpose[self.x].index(3)
+			if player > self.y
+				if !map.transpose[self.x].values_at(self.y..player).include?(0)
+					self.dir = 0
+					if player - self.y == 1
+						self.attack(map)
+					elsif map[self.y+1][self.x] == 1
+			        	self.y += 1
+					end
+				else
+					flg = false
+				end
+			else
+				if !map.transpose[self.x].values_at(player..self.y).include?(0)
+					self.dir = 2
+					if self.y - player == 1
+						self.attack(map)
+					elsif map[self.y-1][self.x] == 1
+						self.y -= 1
+					end
+				else
+					flg = false
+				end
+			end
+		elsif map[self.y].include?(3)
+			player = map[self.y].index(3)
+			if player > self.x
+				if !map[self.y].values_at(self.x..player).include?(0)
+					self.dir = 1
+					if player - self.x == 1
+						self.attack(map)
+					elsif map[self.y][self.x+1] == 1
+						self.x += 1
+					end
+				else
+					flg = false
+				end
+			else
+				if !map[self.y].values_at(player..self.x).include?(0)
+					self.dir = 3
+					if self.x - player == 1
+						self.attack(map)
+					elsif map[self.y][self.x-1] == 1
+						self.x -= 1
+					end
+				else
+					flg = false
+				end
+			end
+		else
+			flg = false
+		end
+
+		if !flg
+			count = 0
+			while count < 4
+			    if count == 0
+			        dir = []
+			    end
+			    while dir.size < count + 1
+			        dir << rand(0..3)
+			        dir.uniq!
+			    end
+			    
+			    case dir[-1]
+			    when 0
+			        if map[self.y+1][self.x] == 1 || map[self.y+1][self.x] == 2
+			        	self.y += 1
+						self.dir = 0
+			        	break
+			        end
+		            count += 1
+			    when 1
+			        if map[self.y][self.x+1] == 1 || map[self.y][self.x+1] == 2
+			        	self.x += 1
+						self.dir = 1
+			        	break
+			        end
+		            count += 1
+			    when 2
+			        if map[self.y-1][self.x] == 1 || map[self.y-1][self.x] == 2
+			            self.y -= 1
+						self.dir = 2
+			            break
+			        end
+		            count += 1
+			    when 3
+			        if map[self.y][self.x-1] == 1 || map[self.y][self.x-1] == 2
+			            self.x -= 1
+						self.dir = 3
+			            break
+			        end
+		            count += 1
+			    end
+			end
 		end
 		map[self.y][self.x] = 4
+	end
+
+	def attack(map)
+		
 	end
 end
 

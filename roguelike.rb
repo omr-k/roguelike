@@ -5,6 +5,12 @@ require_relative "class"
 Window.width = 1024
 Window.height = 576
 
+font = Font.new(18)
+
+windows = Image.load('resource/image/windows.png')
+messageLog = []
+str = ""
+
 glass = Image.load('resource/image/glass.png')
 wall = Image.load('resource/image/wall.png')
 stair = Image.load('resource/image/stair.png')
@@ -12,12 +18,13 @@ mapdata = []
 mapping = []
 
 charImage = [Image.load('resource/image/char_front.png'),
-		Image.load('resource/image/char_right.png'),
-		Image.load('resource/image/char_back.png'),
-		Image.load('resource/image/char_left.png')]
+			Image.load('resource/image/char_right.png'),
+			Image.load('resource/image/char_back.png'),
+			Image.load('resource/image/char_left.png')]
 
 eneImage = [[Image.load('resource/image/ball_front.png'),Image.load('resource/image/ball_right.png'),Image.load('resource/image/ball_back.png'),Image.load('resource/image/ball_left.png'),],
-		]
+			[Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png')]
+			]
 
 enemys = []
 
@@ -31,10 +38,11 @@ mapflg = 0
 blind = true
 floorCount = 0
 Window.loop do
-	Window.draw_font_ex(0,560,"push esc to end", Font.new(16))
-	Window.draw_font_ex(0,0,"#{floorCount}F", Font.new(18))
-	Window.draw_font_ex(0,17,"HP:#{mine.hp}", Font.new(18))
-	Window.draw_font_ex(60,17,"stamina:#{mine.stamina}", Font.new(18))
+	Window.draw_font_ex(0,560,"push esc to end", font)
+	Window.draw_font_ex(0,0,"#{floorCount}F", font)
+	Window.draw_font_ex(0,17,"HP:#{mine.hp}", font)
+	Window.draw_font_ex(60,17,"stamina:#{mine.stamina}", font)
+	Window.draw_font(50,390,str,font)
 
 	if mapflg == 0
 		floorCount += 1
@@ -54,16 +62,17 @@ Window.loop do
 		mapflg = 1
 	elsif mapflg == 1
 		if blind
+			Window.draw(0,0,windows)
 			x = -2
 			while x < 3
 				y = -2
 				while y < 3
 					if mine.x+x < 0 || mine.y+y < 0 || mine.x+x >= mapdata.size || mine.y+y >= mapdata.size || mapdata[mine.y+y][mine.x+x] == 0
-						Window.draw(274+x*32,274+y*32,wall)
+						Window.draw(250+x*32,180+y*32,wall)
 					elsif mapdata[mine.y+y][mine.x+x] == 2
-						Window.draw(274+x*32,274+y*32,stair)
+						Window.draw(250+x*32,180+y*32,stair)
 					elsif mapdata[mine.y+y][mine.x+x] == 1
-						Window.draw(274+x*32,274+y*32,glass)
+						Window.draw(250+x*32,180+y*32,glass)
 					end
 					y += 1
 				end
@@ -72,20 +81,20 @@ Window.loop do
 
 			items.each do |it|
 				if it.drop && (it.x - mine.x).abs <= 2 && (it.y - mine.y).abs <= 2
-					Window.draw(274+(it.x - mine.x)*32,274+(it.y - mine.y)*32,it.img)
+					Window.draw(250+(it.x - mine.x)*32,180+(it.y - mine.y)*32,it.img)
 				end
 			end
 
 			mapping = Marshal.load(Marshal.dump(mapdata))
 			enemys.each do |en|
 				if (en.x - mine.x).abs <= 2 && (en.y - mine.y).abs <= 2
-					Window.draw(274+(en.x - mine.x)*32,274+(en.y - mine.y)*32,eneImage[en.img][en.dir])
+					Window.draw(250+(en.x - mine.x)*32,180+(en.y - mine.y)*32,eneImage[en.img][en.dir])
 					mapping[en.y][en.x] = 4
 				end
 			end
 
 			mapping[mine.y][mine.x] = 3
-			Window.draw(274,274,charImage[mine.dir])
+			Window.draw(250,180,charImage[mine.dir])
 
 			if Input.key_push?(K_SPACE)
 				blind = false
@@ -148,20 +157,21 @@ Window.loop do
 			else
 				attack = mine.attack(enemys,mapping)
 				if attack[0] == nil
-					puts "素振りをした"
+					str = message(messageLog,"素振りをした")
 				elsif attack[0] == 0
-					puts "#{enemys[attack[1]].name}にダメージを与えられなかった"
+					str = message(messageLog,"#{enemys[attack[1]].name}にダメージを与えられなかった")
 				else
-					puts "#{enemys[attack[1]].name}に#{attack[0]}ダメージ与えた"
+					str = message(messageLog,"#{enemys[attack[1]].name}に#{attack[0]}ダメージ与えた")
 					if enemys[attack[1]].hp <= 0
-						puts "#{enemys[attack[1]].name}は倒れた"
+						str = message(messageLog,"#{enemys[attack[1]].name}は倒れた")
 						enemys.delete_at(attack[1])
 					end
 				end
-				mine.countUp
-				enemys.each do |en|
-					en.move(mapping)
-				end
+			end
+
+			mine.countUp
+			enemys.each do |en|
+				en.move(mapping)
 			end
 		end
 	end
