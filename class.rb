@@ -16,18 +16,17 @@ def set(map, ban)
 	end
 end
 
-def message(log,s)
-	log << s
+def message(s)
+	$messageLog << s
 
-	if log.size > 5
-		log.shift
+	if $messageLog.size > 5
+		$messageLog.shift
 	end
 
-	str = ""
-	log.size.times do |n|
-		str += log[n] + "\n"
+	$string = ""
+	$messageLog.size.times do |n|
+		$string += $messageLog[n] + "\n"
 	end
-	return str
 end
 
 class Char
@@ -286,7 +285,16 @@ class Enemy
 	end
 
 	def attack(map)
-		
+		damage = self.str - $mine.vit + rand(-2..4)
+		if damage <= 0
+			damage = 0
+		end
+		if damage == 0
+			message("#{self.name}はダメージを与えられなかった")
+		else
+			message("#{self.name}は#{damage}ダメージ与えた")
+		end
+		$mine.hp -= damage
 	end
 end
 
