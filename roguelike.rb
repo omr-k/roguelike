@@ -8,7 +8,8 @@ Window.height = 576
 smallFont = Font.new(18)
 bigFont = Font.new(32)
 
-windows = Image.load('resource/image/windows5.png')
+windows = Image.load('resource/image/windows.png')
+pointer = Image.load('resource/image/pointer.png')
 $messageLog = []
 
 gameover = Image.load('resource/image/gameover.png')
@@ -25,8 +26,7 @@ charImage = [Image.load('resource/image/char_front.png'),
 			Image.load('resource/image/char_left.png')]
 
 eneImage = [[Image.load('resource/image/ball_front.png'),Image.load('resource/image/ball_right.png'),Image.load('resource/image/ball_back.png'),Image.load('resource/image/ball_left.png'),],
-			[Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png')]
-			]
+			[Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png')]]
 
 enemys = []
 
@@ -36,6 +36,8 @@ items = []
 
 mapflg = 0
 deathflg = false
+menu = 0
+pointerY = 0
 start = false
 blind = true
 floorCount = 0
@@ -149,60 +151,86 @@ Window.loop do
 			end
 
 			if $mine.hp > 0
-				if Input.key_push?(K_UP)
-					$mine.dir = 2
-					$mine.move(enemys,mapping)
-				elsif Input.key_push?(K_RIGHT)
-					$mine.dir = 1
-					$mine.move(enemys,mapping)
-				elsif Input.key_push?(K_DOWN)
-					$mine.dir = 0
-					$mine.move(enemys,mapping)
-				elsif Input.key_push?(K_LEFT)
-					$mine.dir = 3
-					$mine.move(enemys,mapping)
-				end
+				if menu == 0
+					if Input.key_push?(K_UP)
+						$mine.dir = 2
+						$mine.move(enemys,mapping)
+					elsif Input.key_push?(K_RIGHT)
+						$mine.dir = 1
+						$mine.move(enemys,mapping)
+					elsif Input.key_push?(K_DOWN)
+						$mine.dir = 0
+						$mine.move(enemys,mapping)
+					elsif Input.key_push?(K_LEFT)
+						$mine.dir = 3
+						$mine.move(enemys,mapping)
+					end
 
-				if $mine.strage.size < $mine.maxstrage
-					$mine.pickup(items)
-				end
+					if $mine.strage.size < $mine.maxstrage
+						$mine.pickup(items)
+					end
 
-				if Input.key_push?(K_Z)
-					if mapdata[$mine.y][$mine.x] == 2
-						$mine.popCount = 0
-						mapflg = 0
-					else
-						attack = $mine.attack(enemys,mapping)
-						if attack[0] == nil
-							$messageLog << "素振りをした"
-						elsif attack[0] == 0
-							$messageLog << "#{enemys[attack[1]].name}にダメージを与えられなかった"
+					if Input.key_push?(K_Z)
+						if mapdata[$mine.y][$mine.x] == 2
+							$mine.popCount = 0
+							mapflg = 0
 						else
-							$messageLog << "#{enemys[attack[1]].name}に#{attack[0]}ダメージ与えた"
-							if enemys[attack[1]].hp <= 0
-								$messageLog << "#{enemys[attack[1]].name}は倒れた"
-								$mine.exp += enemys[attack[1]].exp
-								enemys.delete_at(attack[1])
+							attack = $mine.attack(enemys,mapping)
+							if attack[0] == nil
+								$messageLog << "素振りをした"
+							elsif attack[0] == 0
+								$messageLog << "#{enemys[attack[1]].name}にダメージを与えられなかった"
+							else
+								$messageLog << "#{enemys[attack[1]].name}に#{attack[0]}ダメージ与えた"
+								if enemys[attack[1]].hp <= 0
+									$messageLog << "#{enemys[attack[1]].name}は倒れた"
+									$mine.exp += enemys[attack[1]].exp
+									enemys.delete_at(attack[1])
 
-								if $mine.exp >= (20 * $mine.level ** 1.7).round
-									$mine.levelup
+									if $mine.exp >= (20 * $mine.level ** 1.7).round
+										$mine.levelup
+									end
 								end
+							end
+						end
+
+						$mine.countUp
+						enemys.each do |ene|
+							ene.move(mapping)
+							if $mine.hp <= 0
+								$mine.hp = 0
+								break
 							end
 						end
 					end
 
-					$mine.countUp
-					enemys.each do |ene|
-						ene.move(mapping)
-						if $mine.hp <= 0
-							$mine.hp = 0
-							break
+					if Input.key_push?(K_X)
+						menu = 1
+						pointerY = 0
+					end
+				elsif menu == 1
+					Window.draw(640,40+pointerY*18,pointer)
+
+					if Input.key_push?(K_UP)
+						pointerY -= 1
+						if pointerY == -1
+							pointerY = 0
+						end
+					elsif Input.key_push?(K_DOWN)
+						pointerY += 1
+						if pointerY >= $mine.strage.size
+							pointerY -= 1
 						end
 					end
-				end
 
-				if Input.key_push?(K_X)
-					
+					if $mine.strage.size > 0 && Input.key_push?(K_Z)
+						$mine.useItem($mine.strage[pointerY])
+						$mine.strage.delete_at(pointerY)
+					end
+
+					if Input.key_push?(K_X)
+						menu = 0
+					end
 				end
 			else
 				if !deathflg

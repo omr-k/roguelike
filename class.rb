@@ -150,6 +150,16 @@ class Char
 		end
 	end
 
+	def useItem(item)
+		case item.category
+		when "food"
+			self.stamina += item.value
+			if self.stamina > 100
+				self.stamina = 100
+			end
+		end
+	end
+
 	def attack(enemys,map)
 		targetY = 0
 		targetX = 0
@@ -333,7 +343,7 @@ end
 
 class Item
 	attr_reader :name, :img, :category
-	attr_accessor :drop, :x, :y
+	attr_accessor :drop, :value, :x, :y
 
 	def initialize(name, category, value, img)
 		@name = name
