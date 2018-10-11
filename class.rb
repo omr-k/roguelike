@@ -16,35 +16,56 @@ def set(map, ban)
 	end
 end
 
-def message(s)
-	$messageLog << s
-
-	if $messageLog.size > 5
+def setString
+	while $messageLog.size > 5
 		$messageLog.shift
 	end
 
-	$string = ""
+	str = ""
 	$messageLog.size.times do |n|
-		$string += $messageLog[n] + "\n"
+		str += $messageLog[n] + "\n"
 	end
+
+	return str
+end
+
+def stragetxt(strage)
+	str = ""
+	strage.each do |itm|
+		str += itm.name + "\n"
+	end
+
+	return str
 end
 
 class Char
-	attr_reader :maxhp, :maxstamina, :str, :vit
-	attr_accessor :hp, :stamina, :dir, :x, :y, :count, :popCount
+	attr_reader :maxstamina, :maxstrage
+	attr_accessor :level, :maxhp, :hp, :stamina, :str, :vit,
+	:exp, :strage, :count, :popCount, :dir, :x, :y
 
 	def initialize
+		@level = 1
 		@hp = 32
 		@maxhp = 32
 		@stamina = 50
 		@maxstamina = 100
 		@str = 6
 		@vit = 5
+		@exp = 0
+		@strage = []
+		@maxstrage = 16
 		@count = 0
 		@popCount = 0 #       2
 		@dir = 0      #  => 3   1
 		@x = 0        #       0
 		@y = 0
+	end
+
+	def levelup
+		self.level += 1
+		self.maxhp += rand(3..5)
+		self.str += rand(1..4)
+		self.vit += rand(1..4)
 	end
 
 	def countUp
@@ -67,9 +88,9 @@ class Char
 		if enemys.size < map.size-5 && enemys.size < 9
 			case rand(0..1)
 			when 0
-				enemys << Enemy.new("Silver Ball", 20, 5, 4, 0)
+				enemys << Enemy.new("Silver Ball", 20, 5, 4, 4, 0)
 			when 1
-				enemys << Enemy.new("Blue Slime", 20, 4, 6, 1)
+				enemys << Enemy.new("Blue Slime", 20, 4, 6, 5, 1)
 			end
 			enemys[-1].x,enemys[-1].y = set(map,self)
 		end
@@ -114,6 +135,17 @@ class Char
 			self.popCount += 1
 			if self.popCount == 20
 				self.pop(enemys,map)
+			end
+		end
+	end
+
+	def pickup(items)
+		items.each do |itm|
+			if itm.drop == true && itm.x == self.x && itm.y == self.y
+				self.strage << itm
+				itm.drop = false
+				$messageLog << "#{itm.name}を拾った"
+				break
 			end
 		end
 	end
@@ -166,15 +198,16 @@ class Char
 end
 
 class Enemy
-	attr_reader :name, :maxhp, :str, :vit
-	attr_accessor :hp, :img, :dir, :x, :y
+	attr_reader :name, :maxhp, :str, :vit, :exp, :img
+	attr_accessor :hp, :dir, :x, :y
 	
-	def initialize(name,hp,str,vit,img)
+	def initialize(name,hp,str,vit,exp,img)
 		@name = name
 		@hp = hp
 		@maxhp = hp
 		@str = str
 		@vit = vit
+		@exp = exp
 		@img = img
 		@dir = 0
 		@x = 0
@@ -290,22 +323,24 @@ class Enemy
 			damage = 0
 		end
 		if damage == 0
-			message("#{self.name}はダメージを与えられなかった")
+			$messageLog << "#{self.name}はダメージを与えられなかった"
 		else
-			message("#{self.name}は#{damage}ダメージ与えた")
+			$messageLog << "#{self.name}は#{damage}ダメージ与えた"
 		end
 		$mine.hp -= damage
 	end
 end
 
 class Item
-	attr_reader :name, :img
+	attr_reader :name, :img, :category
 	attr_accessor :drop, :x, :y
 
-	def initialize(name, img)
+	def initialize(name, category, value, img)
 		@name = name
-		@img = img
 		@drop = true
+		@category = category
+		@value = value
+		@img = img
 		@x = 0
 		@y = 0
 	end
