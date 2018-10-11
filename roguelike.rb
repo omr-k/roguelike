@@ -35,6 +35,7 @@ itemImage = [Image.load('resource/image/apple.png'),Image.load('resource/image/s
 items = []
 
 mapflg = 0
+deathflg = false
 start = false
 blind = true
 floorCount = 0
@@ -43,6 +44,7 @@ Window.loop do
 
 	if !start
 		Window.draw_font_ex(200,250,"push Z to start", bigFont)
+		deathflg = false
 
 		if Input.key_push?(K_Z)
 			start = true
@@ -198,7 +200,15 @@ Window.loop do
 						end
 					end
 				end
+
+				if Input.key_push?(K_X)
+					
+				end
 			else
+				if !deathflg
+					deathflg = true
+					$messageLog << "あなたはは倒れてしまった"
+				end
 				Window.draw(100,200,gameover)
 
 				if Input.key_push?(K_Z)
