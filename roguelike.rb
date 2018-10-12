@@ -8,29 +8,33 @@ Window.height = 576
 smallFont = Font.new(18)
 bigFont = Font.new(32)
 
-windows = Image.load('resource/image/windows.png')
-pointer = Image.load('resource/image/pointer.png')
+windows = Image.load('resource/images/windows.png')
+pointer = Image.load('resource/images/pointer.png')
 $messageLog = []
 
-gameover = Image.load('resource/image/gameover.png')
+gameover = Image.load('resource/images/gameover.png')
 
-floor = Image.load('resource/image/glass.png')
-wall = Image.load('resource/image/wall.png')
-stair = Image.load('resource/image/stair.png')
+floor = [Image.load('resource/images/glass.png'),Image.load('resource/images/dirt.png')]
+wall = [Image.load('resource/images/wall.png'),Image.load('resource/images/rock.png')]
+stair = Image.load('resource/images/stair.png')
 mapdata = []
 mapping = []
 
-charImage = [Image.load('resource/image/char_front.png'),
-			Image.load('resource/image/char_right.png'),
-			Image.load('resource/image/char_back.png'),
-			Image.load('resource/image/char_left.png')]
+charImage = [Image.load('resource/images/char_front.png'),
+			Image.load('resource/images/char_right.png'),
+			Image.load('resource/images/char_back.png'),
+			Image.load('resource/images/char_left.png')]
 
-eneImage = [[Image.load('resource/image/ball_front.png'),Image.load('resource/image/ball_right.png'),Image.load('resource/image/ball_back.png'),Image.load('resource/image/ball_left.png'),],
-			[Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png'),Image.load('resource/image/slime.png')]]
+eneImage = [[Image.load('resource/images/ball_front.png'),Image.load('resource/images/ball_right.png'),Image.load('resource/images/ball_back.png'),Image.load('resource/images/ball_left.png'),],
+			[Image.load('resource/images/slime.png'),Image.load('resource/images/slime.png'),Image.load('resource/images/slime.png'),Image.load('resource/images/slime.png')]]
 
 enemys = []
 
-itemImage = [Image.load('resource/image/apple.png'),Image.load('resource/image/scroll.png')]
+itemImage = [Image.load('resource/images/apple.png'),Image.load('resource/images/greenapple.png'),
+			Image.load('resource/images/greenherb.png'),Image.load('resource/images/redherb.png'),Image.load('resource/images/blueherb.png'),
+			Image.load('resource/images/potion.png'),Image.load('resource/images/greenpotion.png'),
+			Image.load('resource/images/redpotion.png'),Image.load('resource/images/bluepotion.png'),
+			Image.load('resource/images/scroll.png'),]
 
 items = []
 
@@ -55,7 +59,13 @@ Window.loop do
 	else
 		if mapflg == 0
 			floorCount += 1
-			mapdata = mapcreate(rand(floorCount..floorCount+1))
+			f = floorCount
+			if floorCount < 10
+				mapdata = mapcreate(rand(floorCount..floorCount+1))
+			else
+				f = 10
+				mapdata = mapcreate(rand(f))
+			end
 			x,y = set(mapdata, nil)
 			mapdata[y][x] = 2
 
@@ -66,12 +76,12 @@ Window.loop do
 			$mine.x,$mine.y = set(mapdata, nil)
 
 			enemys.clear
-			enemys << Enemy.new("Silver Ball", 20, 5, 4, 4, 0)
-			enemys[0].x,enemys[0].y = set(mapdata, $mine)
-
 			items.delete_if{|itm|itm.drop == true}
-			items << Item.new("apple", "food", 50, itemImage[0])
-			items[-1].x,items[-1].y = set(mapdata, $mine)
+			(f/2+1).times do
+				$mine.pop(enemys, mapdata)
+				$mine.drop(items, mapdata, floorCount)
+			end
+
 			mapflg = 1
 		elsif mapflg == 1
 			Window.draw_font_ex(5,5,"#{floorCount}F", smallFont)
@@ -88,28 +98,28 @@ Window.loop do
 					y = -2
 					while y < 3
 						if $mine.x+x < 0 || $mine.y+y < 0 || $mine.x+x >= mapdata.size || $mine.y+y >= mapdata.size || mapdata[$mine.y+y][$mine.x+x] == 0
-							Window.draw(250+x*32,180+y*32,wall)
+							Window.draw(250+x*32,180+y*32,wall[0])
 						elsif mapdata[$mine.y+y][$mine.x+x] == 2
 							Window.draw(250+x*32,180+y*32,stair)
 						elsif mapdata[$mine.y+y][$mine.x+x] == 1
-							Window.draw(250+x*32,180+y*32,floor)
+							Window.draw(250+x*32,180+y*32,floor[0])
 						end
 						y += 1
 					end
 					x += 1
 				end
 
-				items.each do |it|
-					if it.drop && (it.x - $mine.x).abs <= 2 && (it.y - $mine.y).abs <= 2
-						Window.draw(250+(it.x - $mine.x)*32,180+(it.y - $mine.y)*32,it.img)
+				items.each do |itm|
+					if itm.drop && (itm.x - $mine.x).abs <= 2 && (itm.y - $mine.y).abs <= 2
+						Window.draw(250+(itm.x - $mine.x)*32,180+(itm.y - $mine.y)*32,itemImage[itm.img])
 					end
 				end
 
 				mapping = Marshal.load(Marshal.dump(mapdata))
-				enemys.each do |en|
-					if (en.x - $mine.x).abs <= 2 && (en.y - $mine.y).abs <= 2
-						Window.draw(250+(en.x - $mine.x)*32,180+(en.y - $mine.y)*32,eneImage[en.img][en.dir])
-						mapping[en.y][en.x] = 4
+				enemys.each do |ene|
+					if (ene.x - $mine.x).abs <= 2 && (ene.y - $mine.y).abs <= 2
+						Window.draw(250+(ene.x - $mine.x)*32,180+(ene.y - $mine.y)*32,eneImage[ene.img][ene.dir])
+						mapping[ene.y][ene.x] = 4
 					end
 				end
 
@@ -124,18 +134,18 @@ Window.loop do
 				wid.times do |y|
 					wid.times do |x|
 						if mapdata[y][x] == 0
-							Window.draw(155+x*32,5+y*32,wall)
+							Window.draw(155+x*32,5+y*32,wall[0])
 						elsif mapdata[y][x] == 2
 							Window.draw(155+x*32,5+y*32,stair)
 						else
-							Window.draw(155+x*32,5+y*32,floor)
+							Window.draw(155+x*32,5+y*32,floor[0])
 						end
 					end
 				end
 
 				items.each do |itm|
 					if itm.drop
-						Window.draw(155+itm.x*32,5+itm.y*32,itm.img)
+						Window.draw(155+itm.x*32,5+itm.y*32,itemImage[itm.img])
 					end
 				end
 

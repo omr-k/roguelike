@@ -85,16 +85,69 @@ class Char
 	end
 
 	def pop(enemys,map)
-		if enemys.size < map.size-5 && enemys.size < 9
+		case rand(0..1)
+		when 0
+			enemys << Enemy.new("Silver Ball", 20, 5, 4, 4, 0)
+		when 1
+			enemys << Enemy.new("Blue Slime", 20, 4, 6, 5, 1)
+		end
+
+		enemys[-1].x,enemys[-1].y = set(map, self)
+		self.popCount = 0
+	end
+
+	def drop(items,map,num)
+		if num < 5
 			case rand(0..1)
 			when 0
-				enemys << Enemy.new("Silver Ball", 20, 5, 4, 4, 0)
+				items << Item.new("apple", "food", 40, 0)
 			when 1
-				enemys << Enemy.new("Blue Slime", 20, 4, 6, 5, 1)
+				items << Item.new("green herb", "herb", 10, 2)
 			end
-			enemys[-1].x,enemys[-1].y = set(map,self)
+		elsif num < 10
+			case rand(0..3)
+			when 0
+				items << Item.new("apple", "food", 40, 0)
+			when 1
+				items << Item.new("green apple", "food", 70, 1)	
+			when 2
+				items << Item.new("green herb", "herb", 10, 2)
+			when 3
+				items << Item.new("red herb", "herb", 20, 3)
+			end
+		elsif num < 15
+			case rand(0..4)
+			when 0
+				items << Item.new("apple", "food", 40, 0)
+			when 1
+				items << Item.new("green apple", "food", 70, 1)	
+			when 2
+				items << Item.new("green herb", "herb", 10, 2)
+			when 3
+				items << Item.new("red herb", "herb", 20, 3)
+			when 4
+				items << Item.new("blue herb", "herb", 40, 4)
+			end
+		else
+			case rand(0..6)
+			when 0
+				items << Item.new("apple", "food", 40, 0)
+			when 1
+				items << Item.new("green apple", "food", 70, 1)	
+			when 2
+				items << Item.new("green herb", "herb", 10, 2)
+			when 3
+				items << Item.new("red herb", "herb", 20, 3)
+			when 4
+				items << Item.new("blue herb", "herb", 40, 4)
+			when 5												
+				items << Item.new("potion", "potion", 60, 5)
+			when 6
+				items << Item.new("green potion", "potion", 80, 6)	
+			end
 		end
-		self.popCount = 0
+
+		items[-1].x,items[-1].y = set(map, self)
 	end
 
 	def move(enemys,map)
@@ -157,6 +210,28 @@ class Char
 			if self.stamina > 100
 				self.stamina = 100
 			end
+		when "herb"
+			self.hp += item.value
+			if self.hp > self.maxhp
+				self.hp = self.maxhp
+			end
+
+			self.stamina += 5
+			if self.stamina > 100
+				self.stamina = 100
+			end
+		when "potion"
+			self.hp += item.value
+			if self.hp > self.maxhp
+				self.hp = self.maxhp
+			end
+
+			self.stamina -= 10
+			if self.stamina < 0
+				self.stamina = 0
+			end
+		when "scroll"
+				
 		end
 	end
 
