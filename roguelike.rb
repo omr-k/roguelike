@@ -26,7 +26,8 @@ charImage = [Image.load('resource/images/char_front.png'),
 			Image.load('resource/images/char_left.png')]
 
 eneImage = [[Image.load('resource/images/ball_front.png'),Image.load('resource/images/ball_right.png'),Image.load('resource/images/ball_back.png'),Image.load('resource/images/ball_left.png'),],
-			[Image.load('resource/images/slime.png'),Image.load('resource/images/slime.png'),Image.load('resource/images/slime.png'),Image.load('resource/images/slime.png')]]
+			[Image.load('resource/images/slime.png'),Image.load('resource/images/slime.png'),Image.load('resource/images/slime.png'),Image.load('resource/images/slime.png')],
+			[Image.load('resource/images/eye_front.png'),Image.load('resource/images/eye_right.png'),Image.load('resource/images/eye_back.png'),Image.load('resource/images/eye_left.png')]]
 
 enemys = []
 

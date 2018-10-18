@@ -85,11 +85,13 @@ class Char
 	end
 
 	def pop(enemys,map)
-		case rand(0..1)
+		case rand(0..2)
 		when 0
 			enemys << Enemy.new("Silver Ball", 20, 5, 4, 4, 0)
 		when 1
 			enemys << Enemy.new("Blue Slime", 20, 4, 6, 5, 1)
+		when 2
+			enemys << Enemy.new("Mono Eye", 26, 8, 3, 7, 2)	
 		end
 
 		enemys[-1].x,enemys[-1].y = set(map, self)
@@ -97,54 +99,31 @@ class Char
 	end
 
 	def drop(items,map,num)
-		if num < 5
-			case rand(0..1)
-			when 0
-				items << Item.new("apple", "food", 40, 0)
-			when 1
-				items << Item.new("green herb", "herb", 10, 2)
-			end
+		if num < 6
+			n = rand(0..1)
 		elsif num < 10
-			case rand(0..3)
-			when 0
-				items << Item.new("apple", "food", 40, 0)
-			when 1
-				items << Item.new("green apple", "food", 70, 1)	
-			when 2
-				items << Item.new("green herb", "herb", 10, 2)
-			when 3
-				items << Item.new("red herb", "herb", 20, 3)
-			end
+			n = rand(0..3)
 		elsif num < 15
-			case rand(0..4)
-			when 0
-				items << Item.new("apple", "food", 40, 0)
-			when 1
-				items << Item.new("green apple", "food", 70, 1)	
-			when 2
-				items << Item.new("green herb", "herb", 10, 2)
-			when 3
-				items << Item.new("red herb", "herb", 20, 3)
-			when 4
-				items << Item.new("blue herb", "herb", 40, 4)
-			end
+			n = rand(0..4)
 		else
-			case rand(0..6)
-			when 0
-				items << Item.new("apple", "food", 40, 0)
-			when 1
-				items << Item.new("green apple", "food", 70, 1)	
-			when 2
-				items << Item.new("green herb", "herb", 10, 2)
-			when 3
-				items << Item.new("red herb", "herb", 20, 3)
-			when 4
-				items << Item.new("blue herb", "herb", 40, 4)
-			when 5												
-				items << Item.new("potion", "potion", 60, 5)
-			when 6
-				items << Item.new("green potion", "potion", 80, 6)	
-			end
+			n = rand(0..6)
+		end
+
+		case n
+		when 0
+			items << Item.new("apple", "food", 40, 0)
+		when 1
+			items << Item.new("green herb", "herb", 10, 2)
+		when 2
+			items << Item.new("red herb", "herb", 20, 3)
+		when 3
+			items << Item.new("green apple", "food", 70, 1)	
+		when 4
+			items << Item.new("blue herb", "herb", 40, 4)
+		when 5												
+			items << Item.new("potion", "potion", 60, 5)
+		when 6
+			items << Item.new("green potion", "potion", 80, 6)	
 		end
 
 		items[-1].x,items[-1].y = set(map, self)
